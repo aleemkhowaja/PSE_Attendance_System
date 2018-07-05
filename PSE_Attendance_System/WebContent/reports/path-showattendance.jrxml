@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.1.1.final using JasperReports Library version 6.1.1  -->
+<!-- 2018-06-25T12:54:18 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="path-showattendance" language="groovy" pageWidth="770" pageHeight="802" columnWidth="770" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" >
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="holidays" class="java.lang.String"/>
+	<parameter name="totalDays" class="java.lang.String"/>
+	<parameter name="imagePath" class="java.lang.String"/>
+	<parameter name="month" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="monthName" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT
+  e.registration_no,
+  e.`employee_id`,
+  e.`name`,
+  des.designation,
+  d.department_name,
+
+ (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`in_time_status`  = 'O' AND a.`employee_id` = e.`employee_id` 
+	AND a.`date` LIKE '$P!{month}-%' AND a.leave_sick_leave = 'Present' AND a.is_deleted=0) AS On_Time_Come,
+	
+ (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`in_time_status`  = 'L' AND a.`employee_id` = e.`employee_id` 
+	AND a.`date` LIKE '$P!{month}-%' AND a.leave_sick_leave = 'Present' AND a.is_deleted=0) AS Late_Come,
+ 
+ (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE a.`out_time_status` = 'O' AND a.`employee_id` = e.`employee_id` 
+	AND a.`date` LIKE '$P!{month}-%' AND a.leave_sick_leave = 'Present' AND a.is_deleted=0) AS On_Time_Leave,
+ (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`out_time_status` = 'L' AND a.`employee_id` = e.`employee_id` 
+	AND a.`date` LIKE '$P!{month}-%' AND a.leave_sick_leave = 'Present' AND a.is_deleted=0) AS Late_Leave,
+ (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`out_time_status` = 'B' AND a.`employee_id` = e.`employee_id` 
+	AND a.`date` LIKE '$P!{month}-%' AND a.leave_sick_leave = 'Present' AND a.is_deleted=0) AS Before_Leave,
+ (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`employee_id` = e.`employee_id` AND a.`date` LIKE '$P!{month}-%' 
+	AND a.leave_sick_leave = 'Present' AND a.is_deleted=0) AS Present_days,
+ (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`employee_id` = e.`employee_id` AND a.`date` LIKE '$P!{month}-%' 
+	AND a.`leave_sick_leave`='Absent' AND a.is_deleted=0) AS AbsentDays,
+ (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`employee_id` = e.`employee_id` AND a.`date` LIKE '$P!{month}-%' 
+	AND a.`leave_sick_leave`='Leave' AND a.is_deleted=0) AS LeaveDays,
+ 
+ (($P{totalDays}-($P{holidays} +(SELECT COUNT(h.`holiday_id`) FROM holidays h WHERE  holiday LIKE '$P!{month}-%'))) - 
+ ((SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`employee_id` = e.`employee_id` 
+ AND a.`date` LIKE '$P!{month}-%' AND (a.leave_sick_leave = 'Present' || a.leave_sick_leave = 'Absent' || a.leave_sick_leave = 'Leave') AND a.is_deleted=0))) AS missing_attendance,
+ 
+  (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`employee_id` = e.`employee_id` 
+ AND a.`date` LIKE '$P!{month}-%' AND a.leave_sick_leave = 'Present' AND a.in_time IS NULL AND a.out_time IS NOT NULL AND a.is_deleted=0) AS in_time_missing_attendance,
+  
+  (SELECT COUNT(a.`attendance_detail_id`) FROM attendance_detail a WHERE  a.`employee_id` = e.`employee_id` 
+ AND a.`date` LIKE '$P!{month}-%' AND a.leave_sick_leave = 'Present' AND a.in_time IS NOT NULL AND a.out_time IS NULL AND a.is_deleted=0) AS out_time_missing_attendance,
+
+
+ ($P{holidays} +(SELECT COUNT(h.`holiday_id`) FROM holidays h WHERE  holiday LIKE '$P!{month}-%'))  AS Holidays
+ 
+FROM
+  employee e
+  
+  LEFT JOIN attendance_detail ad
+    ON ad.`employee_id` = e.`employee_id`
+  LEFT JOIN  department d
+    ON d.`department_id` = e.`department_id`
+  LEFT JOIN  designation des
+    ON des.designation_id = e.designation_id
+
+    WHERE ad.date LIKE '$P!{month}-%' AND e.`isDeleted` = FALSE AND e.`isActive` = TRUE
+GROUP BY e.`employee_id`]]>
+	</queryString>
+	<field name="registration_no" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="employee_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="designation" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="department_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="On_Time_Come" class="java.lang.Long"/>
+	<field name="Late_Come" class="java.lang.Long"/>
+	<field name="On_Time_Leave" class="java.lang.Long"/>
+	<field name="Late_Leave" class="java.lang.Long"/>
+	<field name="Before_Leave" class="java.lang.Long"/>
+	<field name="Present_days" class="java.lang.Long"/>
+	<field name="AbsentDays" class="java.lang.Long"/>
+	<field name="LeaveDays" class="java.lang.Long"/>
+	<field name="missing_attendance" class="java.lang.Double"/>
+	<field name="in_time_missing_attendance" class="java.lang.Long"/>
+	<field name="out_time_missing_attendance" class="java.lang.Long"/>
+	<field name="Holidays" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="116" splitType="Stretch">
+			<image>
+				<reportElement x="12" y="0" width="387" height="64" />
+				<imageExpression><![CDATA[$P{imagePath}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="452" y="33" width="108" height="19" />
+				<textElement textAlignment="Left">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Month :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="452" y="79" width="108" height="19" />
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Holidays :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="562" y="34" width="150" height="19" />
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{monthName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="562" y="79" width="150" height="19" />
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Holidays}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="452" y="56" width="108" height="19" />
+				<textElement textAlignment="Left">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Days :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="562" y="56" width="150" height="19" />
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{totalDays}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="17" y="69" width="312" height="20" />
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Monthly Report for Employee Attendance]]></text>
+			</staticText>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="96" splitType="Stretch">
+			<staticText>
+				<reportElement x="3" y="1" width="106" height="95" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Employee Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="314" y="1" width="41" height="95" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Present Days]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="355" y="1" width="35" height="95" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Absent Days]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="460" y="17" width="40" height="79" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[On Time]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="500" y="17" width="40" height="79" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Late Arrival]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="594" y="17" width="40" height="79" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Early Departure]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="674" y="17" width="40" height="79" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Late Departure]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="460" y="0" width="120" height="17" />
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[In Time]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="594" y="0" width="160" height="17" />
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Out Time]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="109" y="1" width="91" height="95" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Department Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="200" y="1" width="114" height="95" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Designation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="540" y="17" width="40" height="79" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[In Time Missing]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="425" y="1" width="35" height="95" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Missing Attendance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="390" y="1" width="35" height="95" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Leaves]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="634" y="17" width="40" height="79" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[On Time Departure]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="714" y="17" width="40" height="79" />
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Out Time Missing]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="21" splitType="Stretch">
+			<textField>
+				<reportElement x="3" y="0" width="106" height="20" />
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="314" y="0" width="41" height="20" />
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{Present_days}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="500" y="0" width="40" height="20" />
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{Late_Come}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="594" y="0" width="40" height="20" />
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{Before_Leave}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="674" y="0" width="39" height="20" />
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{Late_Leave}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="355" y="0" width="35" height="20" />
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{AbsentDays}.intValue()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="109" y="0" width="91" height="20" />
+				<box leftPadding="2" rightPadding="0">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{department_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="200" y="0" width="114" height="20" />
+				<box leftPadding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{designation}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="460" y="0" width="40" height="20" />
+				<box leftPadding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{On_Time_Come}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="540" y="0" width="40" height="20" />
+				<box leftPadding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{in_time_missing_attendance}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="425" y="0" width="35" height="20" />
+				<box leftPadding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{missing_attendance}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="390" y="0" width="35" height="20" />
+				<box leftPadding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{LeaveDays}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="634" y="0" width="40" height="20" />
+				<box leftPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{On_Time_Leave}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="713" y="0" width="41" height="20" />
+				<box leftPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{out_time_missing_attendance}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>
